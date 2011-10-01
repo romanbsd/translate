@@ -5,17 +5,17 @@ class Translate::Keys
   def self.files
     @@files ||= Translate::Keys.new.files
   end
-  
+
   # Allows flushing of the files cache
   def self.files=(files)
     @@files = files
   end
-  
+
   def files
     @files ||= extract_files
-  end  
+  end
   alias_method :to_hash, :files
-  
+
   def keys
     files.keys
   end
@@ -44,7 +44,7 @@ class Translate::Keys
   end
 
   def self.translated_locales
-    I18n.available_locales.reject { |locale| [:root, I18n.default_locale.to_sym].include?(locale) }        
+    I18n.available_locales.reject { |locale| [:root, I18n.default_locale.to_sym].include?(locale) }
   end
 
   # Checks if a nested hash contains the keys in dot separated I18n key.
@@ -71,9 +71,9 @@ class Translate::Keys
       memo.is_a?(Hash) ? memo.try(:[], key) : nil
     end.nil?
   end
-  
+
   # Convert something like:
-  # 
+  #
   # {
   #  :pressrelease => {
   #    :label => {
@@ -81,9 +81,9 @@ class Translate::Keys
   #    }
   #   }
   # }
-  # 
+  #
   # to:
-  # 
+  #
   #  {'pressrelease.label.one' => "Pressmeddelande"}
   #
   def self.to_shallow_hash(hash)
@@ -98,13 +98,13 @@ class Translate::Keys
       shallow_hash
     end
   end
-  
+
   # Convert something like:
-  # 
+  #
   #  {'pressrelease.label.one' => "Pressmeddelande"}
-  # 
+  #
   # to:
-  # 
+  #
   # {
   #  :pressrelease => {
   #    :label => {
@@ -112,7 +112,7 @@ class Translate::Keys
   #    }
   #   }
   # }
-  def self.to_deep_hash(hash)    
+  def self.to_deep_hash(hash)
     hash.inject({}) do |deep_hash, (key, value)|
       keys = key.to_s.split('.').reverse
       leaf_key = keys.shift
@@ -132,7 +132,25 @@ class Translate::Keys
 
   def extract_files
     files_to_scan.inject(HashWithIndifferentAccess.new) do |files, file|
-      IO.read(file).scan(i18n_lookup_pattern).flatten.map(&:to_sym).each do |key|
+      keys = IO.read(file)
+      if keys.respond_to? "encode"
+        keys = keys.encode("UTF-8").force_encoding("UTF-8")
+      end
+      error_count = 0
+      begin
+        encoded_keys = keys.scan(i18n_lookup_pattern)
+      rescue => e
+        unless error_count > 1
+          if keys.respond_to? 'encode!'
+            keys.encode!('utf-8', 'utf-8', :invalid => :replace)
+          end
+          error_count += 1
+          retry
+        else
+          puts "cannot fix: #{e} on : #{file}"
+        end
+      end
+      encoded_keys.flatten.map(&:to_sym).each do |key|
         files[key] ||= []
         path = Pathname.new(File.expand_path(file)).relative_path_from(Pathname.new(Rails.root)).to_s
         files[key] << path if !files[key].include?(path)
