@@ -19,7 +19,8 @@ class TranslateController < ActionController::Base
   end
   
   def translate
-    I18n.backend.store_translations(@to_locale, Translate::Keys.to_deep_hash(params[:key]))
+		processed_parameters = process_array_parameters(params[:key])
+    I18n.backend.store_translations(@to_locale, Translate::Keys.to_deep_hash(processed_parameters))
     Translate::Storage.new(@to_locale).write_to_file
     Translate::Log.new(@from_locale, @to_locale, params[:key].keys).write_to_file
     force_init_translations # Force reload from YAML file
@@ -39,8 +40,8 @@ class TranslateController < ActionController::Base
     @keys.reject! do |key|
       from_text = lookup(@from_locale, key)
       # When translating from one language to another, make sure there is a text to translate from.
-      # Always exclude non string translation objects as we don't support editing them in the UI.
-      (@from_locale != @to_locale && !from_text.present?) || (from_text.present? && !from_text.is_a?(String))      
+      # The only supported formats are String and Array. We don't support other formats
+      (@from_locale != @to_locale && !from_text.present?) || (from_text.present? && !from_text.is_a?(String) && !from_text.is_a?(Array))      
     end
   end
 
@@ -162,4 +163,17 @@ class TranslateController < ActionController::Base
   def log_hash
     @log_hash ||= Translate::Log.new(@from_locale, @to_locale, {}).read
   end
+
+	def process_array_parameters(parameter)
+		reconstructed_hash = Hash.new
+
+		parameter.each do |key, value|
+			if value.is_a?(String)
+				reconstructed_hash[key] = value
+			elsif value.is_a?(Hash)
+				reconstructed_hash[key] = Translate::Keys.arraylize(value)
+			end
+		end
+		reconstructed_hash
+	end
 end

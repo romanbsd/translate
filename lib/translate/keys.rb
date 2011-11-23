@@ -128,6 +128,21 @@ class Translate::Keys
     hash1.merge!(hash2, &merger)
   end
 
+	# Convert something like:
+	#
+	# {'0' => "elem 1", '1' => "elem 2"}
+	#
+	# to:
+	#
+	# ["elem 1", "elem 2"]
+	#
+	def self.arraylize(input_hash)
+		input_hash.inject([]) do |constructed_array, (key, value)|
+			constructed_array << value
+			constructed_array
+		end
+	end
+
   private
 
   def extract_files

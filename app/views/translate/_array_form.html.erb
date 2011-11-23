@@ -1,0 +1,42 @@
+<%
+	from_text = lookup(from_locale, key)
+	to_text = lookup(to_locale, key)
+	field_name = "key[#{key}]"
+%>
+
+<div class="translation">
+<% if from_text.present? %>
+	<p class="translation-text">
+		<ol>
+			<% from_text.each_with_index do |from_text_section, index| %>
+				<%
+					from_text_section = from_text_section.to_s
+					line_size = 100
+					n_lines = n_lines(from_text_section, line_size)
+					# this is needed so the controller doesn't freak out when there is no translations found
+					# for this element yet...
+					to_text = Array.new if to_text.blank?
+				%>
+				<li><%= from_text_section %></li>
+				<p class="edit-form">
+				<% if n_lines > 1 %>
+					<%= text_area_tag("#{field_name}[#{index}]", to_text[index], :size => "#{line_size}x#{n_lines}", :id => "#{key}[#{index}]") %>
+				<% else %>
+					<%= text_field_tag("#{field_name}[#{index}]", to_text[index], :size => line_size, :id => "#{key}[#{index}]") %>
+				<% end %>
+				<%= link_to_function 'Auto Translate', "getGoogleTranslation('#{key}[#{index}]', \"#{escape_javascript(from_text_section)}\", '#{@from_locale}', '#{@to_locale}')", :style => 'padding: 0; margin: 0;' %>
+				</p>
+			<% end %>
+		</ol>
+	</p>
+<% end %>
+<p>
+	<em>
+		<br/>
+		<strong>Key:</strong><%=h key %><br/>
+		<% if @files[key] %>
+			<strong>File:</strong><%= @files[key].join("<br/>") %>
+			<% end %>
+	</em>
+</p>
+</div>  

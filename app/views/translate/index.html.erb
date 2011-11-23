@@ -20,8 +20,8 @@
      <%= hidden_field_tag(:filter, params[:filter]) %>
      <%= hidden_field_tag(:sort_by, params[:sort_by]) %>
      <label>Translate from</label>
-     <%= select_tag(:from_locale, options_for_select(I18n.available_locales, @from_locale.to_sym)) %> <span>to</span>
-     <%= select_tag(:to_locale, options_for_select(I18n.available_locales, @to_locale.to_sym)) %>
+     <%= select_tag(:from_locale, options_for_select(from_locales, @from_locale.to_sym)) %> <span>to</span>
+     <%= select_tag(:to_locale, options_for_select(to_locales, @to_locale.to_sym)) %>
      <%= submit_tag "Display" %>
    </p>
   </div>
@@ -70,38 +70,13 @@
     <p class="translate">
 	    <%= submit_tag "Save Translations" %>
 	  </p>
-	  <% @paginated_keys.each do |key| 
-	      from_text = lookup(@from_locale, key)
-	      to_text = lookup(@to_locale, key)
-	      line_size = 100
-	      n_lines = n_lines(from_text, line_size)
-	      field_name = "key[#{key}]"
-    %>
-	  <div class="translation">    
-		<% if from_text.present? %>
-		  <p class="translation-text">
-				<%= simple_format(h(from_text)) %>
-			</p>
+	  <% @paginated_keys.each do |key| %>
+			<%= 
+				# this is a helper method, we need to determine if the thing we are trying to translate is
+				# a string or an array, and it would be very messey if i put everything in this view
+				render_translate_form(@from_locale, @to_locale, key)
+			%>
 		<% end %>
-		<p class="edit-form">
-		<% if n_lines > 1 %>
-			<%= text_area_tag(field_name, to_text, :size => "#{line_size}x#{n_lines}", :id => key) %>
-		<% else %>
-			<%= text_field_tag(field_name, to_text, :size => line_size, :id => key) %>
-		<% end %>
-		</p>
-		<p>
-		  <em>
-			  <%= link_to_function 'Auto Translate', "getGoogleTranslation('#{key}', \"#{escape_javascript(from_text)}\", '#{@from_locale}', '#{@to_locale}')", :style => 'padding: 0; margin: 0;' %>
-			  <br/>
-			  <strong>Key:</strong><%=h key %><br/>
-			  <% if @files[key] %>
-				  <strong>File:</strong><%= @files[key].join("<br/>") %>
-			    <% end %>
-			</em>
-		</p>
-	</div>  
-<% end %>
   <p class="translate">
     <%= submit_tag "Save Translations" %>
 	</p>

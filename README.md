@@ -43,6 +43,16 @@ Add to your Gemfile:
 
 Now visit /translate in your web browser to start translating.
 
+Configuration
+-------------
+
+(Optional) You can configure from_locales and to_locales explicitly through your environments/development.rb by adding
+
+	config.from_locales = [:en]
+	config.to_locales = [:ja, :es, :fr]
+
+Where [:en] and [:ja, :es, :fr] could be replaced by locale list of your choice.
+
 Dependencies
 ------------
 
@@ -56,6 +66,7 @@ Authors
 - Joakim Westerlund (web design)
 - Milan Novota (initial Rails 3 support)
 - Roman Shterenzon (Rails 3 cleanup and gem packaging)
+- Ichiro Yamamoto
 
 Many thanks to http://newsdesk.se for sponsoring the development of this plugin.
 
