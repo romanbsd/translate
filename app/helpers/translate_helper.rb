@@ -1,20 +1,5 @@
 module TranslateHelper
 
-	def render_translate_form(from_locale, to_locale, key)
-		from_text = lookup(from_locale, key)
-		if from_text.is_a?(String)
-			render :partial => 'string_form', :locals =>
-				{:from_locale => from_locale,
-					:to_locale => to_locale,
-					:key => key}
-		elsif from_text.is_a?(Array)
-			render :partial => 'array_form', :locals =>
-				{:from_locale => from_locale,
-					:to_locale => to_locale,
-					:key => key}
-		end
-	end
-
 	def from_locales
 		# Attempt to get the list of locale from configuration
 		from_loc = Rails.application.config.from_locales if Rails.application.config.respond_to?(:from_locales)
